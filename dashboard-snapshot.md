@@ -1,0 +1,91 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - heading "Catalyst Components" [level=1] [ref=e7]
+        - generic [ref=e8]: Inventory Management System
+      - button "English" [ref=e10] [cursor=pointer]
+      - button "JD John Doe" [ref=e19] [cursor=pointer]:
+        - generic [ref=e20]: JD
+        - generic [ref=e21]: John Doe
+  - generic [ref=e24]:
+    - complementary [ref=e25]:
+      - navigation [ref=e26]:
+        - link "Overview Overview" [ref=e27] [cursor=pointer]:
+          - /url: /
+          - img "Overview" [ref=e28]
+          - generic [ref=e30]: Overview
+        - link "Inventory Inventory" [ref=e31] [cursor=pointer]:
+          - /url: /inventory
+          - img "Inventory" [ref=e32]
+          - generic [ref=e34]: Inventory
+        - link "Orders Orders" [ref=e35] [cursor=pointer]:
+          - /url: /orders
+          - img "Orders" [ref=e36]
+          - generic [ref=e38]: Orders
+        - link "Finance Finance" [ref=e39] [cursor=pointer]:
+          - /url: /spending
+          - img "Finance" [ref=e40]
+          - generic [ref=e42]: Finance
+        - link "Demand Forecast Demand Forecast" [ref=e43] [cursor=pointer]:
+          - /url: /demand
+          - img "Demand Forecast" [ref=e44]
+          - generic [ref=e46]: Demand Forecast
+        - link "Reports nav.reports" [ref=e47] [cursor=pointer]:
+          - /url: /reports
+          - img "Reports" [ref=e48]
+          - generic [ref=e50]: nav.reports
+        - link "Restocking Restocking" [ref=e51] [cursor=pointer]:
+          - /url: /restocking
+          - img "Restocking" [ref=e52]
+          - generic [ref=e54]: Restocking
+      - button [ref=e55] [cursor=pointer]:
+        - img "Collapse" [ref=e56]
+    - generic [ref=e58]:
+      - generic [ref=e60]:
+        - generic [ref=e61]:
+          - generic [ref=e62]:
+            - generic [ref=e63]: Time Period
+            - combobox [ref=e64] [cursor=pointer]:
+              - option "All Months" [selected]
+              - option "January"
+              - option "February"
+              - option "March"
+              - option "April"
+              - option "May"
+              - option "June"
+              - option "July"
+              - option "August"
+              - option "September"
+              - option "October"
+              - option "November"
+              - option "December"
+          - generic [ref=e65]:
+            - generic [ref=e66]: Location
+            - combobox [ref=e67] [cursor=pointer]:
+              - option "All" [selected]
+              - option "San Francisco"
+              - option "London"
+              - option "Tokyo"
+          - generic [ref=e68]:
+            - generic [ref=e69]: Category
+            - combobox [ref=e70] [cursor=pointer]:
+              - option "All" [selected]
+              - option "Circuit Boards"
+              - option "Sensors"
+              - option "Actuators"
+              - option "Controllers"
+              - option "Power Supplies"
+          - generic [ref=e71]:
+            - generic [ref=e72]: Order Status
+            - combobox [ref=e73] [cursor=pointer]:
+              - option "All" [selected]
+              - option "Delivered"
+              - option "Shipped"
+              - option "Processing"
+              - option "Backordered"
+        - button "Reset all filters" [disabled] [ref=e74]
+      - main [ref=e77]:
+        - generic [ref=e78]:
+          - heading "Overview" [level=2] [ref=e80]
+          - generic [ref=e82]: "Failed to load dashboard data: Network Error"
