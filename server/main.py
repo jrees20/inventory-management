@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 from pydantic import BaseModel
+from datetime import datetime, timedelta
 from mock_data import inventory_items, orders, demand_forecasts, backlog_items, spending_summary, monthly_spending, category_spending, recent_transactions, purchase_orders
 
 app = FastAPI(title="Factory Inventory Management System")
@@ -120,7 +121,92 @@ class CreatePurchaseOrderRequest(BaseModel):
     expected_delivery_date: str
     notes: Optional[str] = None
 
+class RestockingRecommendation(BaseModel):
+    id: str
+    sku: str
+    name: str
+    category: str
+    warehouse: str
+    quantity_on_hand: int
+    reorder_point: int
+    quantity_to_order: int
+    unit_cost: float
+    line_cost: float
+
+class RestockingOrderRequest(BaseModel):
+    items: List[dict]
+    warehouse: Optional[str] = None
+    category: Optional[str] = None
+
 # API endpoints
+@app.get("/api/restocking/recommendations", response_model=List[RestockingRecommendation])
+def get_restocking_recommendations(
+    warehouse: Optional[str] = None,
+    category: Optional[str] = None
+):
+    """Get low-stock inventory items recommended for restocking"""
+    # Filter items below reorder point
+    low_stock = [item for item in inventory_items if item["quantity_on_hand"] < item["reorder_point"]]
+
+    # Apply warehouse and category filters
+    low_stock = apply_filters(low_stock, warehouse, category)
+
+    # Build recommendations with computed fields
+    recommendations = []
+    for item in low_stock:
+        quantity_to_order = item["reorder_point"] - item["quantity_on_hand"]
+        line_cost = quantity_to_order * item["unit_cost"]
+
+        rec = RestockingRecommendation(
+            id=item["id"],
+            sku=item["sku"],
+            name=item["name"],
+            category=item["category"],
+            warehouse=item["warehouse"],
+            quantity_on_hand=item["quantity_on_hand"],
+            reorder_point=item["reorder_point"],
+            quantity_to_order=quantity_to_order,
+            unit_cost=item["unit_cost"],
+            line_cost=line_cost
+        )
+        recommendations.append(rec)
+
+    # Sort by line_cost descending (most expensive first)
+    recommendations.sort(key=lambda x: x.line_cost, reverse=True)
+    return recommendations
+
+@app.post("/api/restocking/orders", response_model=Order)
+def create_restocking_order(request: RestockingOrderRequest):
+    """Create a new restocking order"""
+    # Calculate total value
+    total_value = sum(item["quantity"] * item["unit_price"] for item in request.items)
+
+    # Determine warehouse and category (use first item or request value, fallback to "Multiple")
+    warehouse = request.warehouse or (request.items[0].get("warehouse") if request.items else "Multiple")
+    category = request.category or (request.items[0].get("category") if request.items else "Multiple")
+
+    # Create order with current timestamp and 14-day lead time
+    order_date = datetime.now().isoformat()
+    expected_delivery = (datetime.now() + timedelta(days=14)).isoformat()
+
+    new_order = {
+        "id": str(len(orders) + 1),
+        "order_number": f"RST-{len(orders)+1:04d}",
+        "customer": "Internal Restocking",
+        "items": request.items,
+        "status": "Restocking",
+        "warehouse": warehouse,
+        "category": category,
+        "order_date": order_date,
+        "expected_delivery": expected_delivery,
+        "total_value": total_value
+    }
+
+    # Append to in-memory orders list
+    orders.append(new_order)
+
+    return new_order
+
 @app.get("/")
 def root():
     return {"message": "Factory Inventory Management System API", "version": "1.0.0"}

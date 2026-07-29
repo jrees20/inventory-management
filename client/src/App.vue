@@ -6,26 +6,6 @@
           <h1>{{ t('nav.companyName') }}</h1>
           <span class="subtitle">{{ t('nav.subtitle') }}</span>
         </div>
-        <nav class="nav-tabs">
-          <router-link to="/" :class="{ active: $route.path === '/' }">
-            {{ t('nav.overview') }}
-          </router-link>
-          <router-link to="/inventory" :class="{ active: $route.path === '/inventory' }">
-            {{ t('nav.inventory') }}
-          </router-link>
-          <router-link to="/orders" :class="{ active: $route.path === '/orders' }">
-            {{ t('nav.orders') }}
-          </router-link>
-          <router-link to="/spending" :class="{ active: $route.path === '/spending' }">
-            {{ t('nav.finance') }}
-          </router-link>
-          <router-link to="/demand" :class="{ active: $route.path === '/demand' }">
-            {{ t('nav.demandForecast') }}
-          </router-link>
-          <router-link to="/reports" :class="{ active: $route.path === '/reports' }">
-            Reports
-          </router-link>
-        </nav>
         <LanguageSwitcher />
         <ProfileMenu
           @show-profile-details="showProfileDetails = true"
@@ -33,10 +13,16 @@
         />
       </div>
     </header>
-    <FilterBar />
-    <main class="main-content">
-      <router-view />
-    </main>
+
+    <div class="app-body">
+      <AppSidebar :collapsed="sidebarCollapsed" @toggle="toggleSidebar" />
+      <div class="content-area">
+        <FilterBar />
+        <main class="main-content">
+          <router-view />
+        </main>
+      </div>
+    </div>
 
     <ProfileDetailsModal
       :is-open="showProfileDetails"
@@ -55,11 +41,12 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onUnmounted } from 'vue'
 import { api } from './api'
 import { useAuth } from './composables/useAuth'
 import { useI18n } from './composables/useI18n'
 import FilterBar from './components/FilterBar.vue'
+import AppSidebar from './components/AppSidebar.vue'
 import ProfileMenu from './components/ProfileMenu.vue'
 import ProfileDetailsModal from './components/ProfileDetailsModal.vue'
 import TasksModal from './components/TasksModal.vue'
@@ -69,6 +56,7 @@ export default {
   name: 'App',
   components: {
     FilterBar,
+    AppSidebar,
     ProfileMenu,
     ProfileDetailsModal,
     TasksModal,
@@ -80,6 +68,7 @@ export default {
     const showProfileDetails = ref(false)
     const showTasks = ref(false)
     const apiTasks = ref([])
+    const sidebarCollapsed = ref(localStorage.getItem('sidebar-collapsed') === 'true')
 
     // Merge mock tasks from currentUser with API tasks
     const tasks = computed(() => {
@@ -146,10 +135,31 @@ export default {
       }
     }
 
-    onMounted(loadTasks)
+    const toggleSidebar = () => {
+      sidebarCollapsed.value = !sidebarCollapsed.value
+      localStorage.setItem('sidebar-collapsed', sidebarCollapsed.value)
+    }
+
+    const handleResize = () => {
+      if (window.innerWidth < 900 && !sidebarCollapsed.value) {
+        sidebarCollapsed.value = true
+      }
+    }
+
+    onMounted(() => {
+      loadTasks()
+      handleResize()
+      window.addEventListener('resize', handleResize)
+    })
+
+    onUnmounted(() => {
+      window.removeEventListener('resize', handleResize)
+    })
 
     return {
       t,
+      sidebarCollapsed,
+      toggleSidebar,
       showProfileDetails,
       showTasks,
       tasks,
@@ -192,21 +202,29 @@ body {
 }
 
 .nav-container {
-  max-width: 1600px;
-  margin: 0 auto;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 0 2rem;
   height: 70px;
 }
 
-.nav-container > .nav-tabs {
+.nav-container > .language-switcher {
   margin-left: auto;
   margin-right: 1rem;
 }
 
-.nav-container > .language-switcher {
-  margin-right: 1rem;
+.app-body {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+}
+
+.content-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .logo {
@@ -228,42 +246,6 @@ body {
   font-weight: 400;
   padding-left: 0.75rem;
   border-left: 1px solid #e2e8f0;
-}
-
-.nav-tabs {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.nav-tabs a {
-  padding: 0.625rem 1.25rem;
-  color: #64748b;
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 0.938rem;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.nav-tabs a:hover {
-  color: #0f172a;
-  background: #f1f5f9;
-}
-
-.nav-tabs a.active {
-  color: #2563eb;
-  background: #eff6ff;
-}
-
-.nav-tabs a.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: #2563eb;
 }
 
 .main-content {
